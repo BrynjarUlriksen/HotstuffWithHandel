@@ -112,6 +112,12 @@ func New(conf Config, builder consensus.Builder) (replica *Replica) {
 
 	return srv
 }
+// creates binary tree
+func (srv *Replica) calculateLevels(replicas *config.ReplicaConfig) error {
+
+	return srv.cfg.Connect(replicas)
+}
+
 
 // StartServers starts the client and replica servers.
 func (srv *Replica) StartServers(replicaListen, clientListen net.Listener) {
