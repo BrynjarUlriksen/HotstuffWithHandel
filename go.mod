@@ -11,7 +11,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/moovweb/gvm v0.0.0-20200216162924-19365a6ab8ac // indirect
 	github.com/relab/gorums v0.5.1-0.20210629194217-9811e4f219ca
-	github.com/relab/iago v0.0.0-20210721102751-67ef5c5ec2b0
+	github.com/relab/iago v0.0.0-20211104134648-e7947964e998
 	github.com/relab/wrfs v0.0.0-20210628111300-b51570396aec
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.8.1
