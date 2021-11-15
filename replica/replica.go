@@ -27,6 +27,10 @@ type cmdID struct {
 
 // Config configures a replica.
 type Config struct {
+
+	//Ids of other replicas 
+	IDList []uint32
+
 	// The id of the replica.
 	ID hotstuff.ID
 	// The private key of the replica.
@@ -113,10 +117,75 @@ func New(conf Config, builder consensus.Builder) (replica *Replica) {
 	return srv
 }
 // creates binary tree
-func (srv *Replica) calculateLevels(replicas *config.ReplicaConfig) error {
+func MakeBinaryTree(nodes []uint32, yourID uint32)[][]uint32{
+    groupSize := 2;
+    levelTree := make(map[int] [][]uint32)
 
-	return srv.cfg.Connect(replicas)
+    levelCounter := 0;
+    for groupSize < len(nodes){
+        currentLevel := SplitToSubarrays(nodes, groupSize)
+        levelTree[levelCounter] = currentLevel
+        groupSize = groupSize *2 
+
+    }
+    // leveltree created. now we create an array node
+    //can follow while communicating
+    var myTree[][]uint32
+    for level := 0; level <=levelCounter; level++{
+        currentLevel := levelTree[level]
+        for _, group := range currentLevel{
+            if(numberInSlice(yourID, group)){
+                groupWithoutYourID := popElement(yourID,
+                group)
+                myTree = append(myTree,groupWithoutYourID)
+            }
+        }
+    }
+    return myTree;
 }
+
+
+// splits nodes in group based on groupsize
+func SplitToSubarrays(nodes []uint32, size int)[][]uint32{
+	var subarrays[][]uint32
+	var j int
+	for i := 0; i < len(nodes); i += size{
+		j += size
+		if j > len(nodes) {
+			j = len(nodes)
+		}
+		subarrays= append(subarrays, nodes[i:j])
+		
+	}	
+	return subarrays;	
+}
+
+
+
+// pops element from slice
+func popElement(yourID uint32, group []uint32)[]uint32{
+	for i, b := range group {
+	   if b == yourID {
+		   group[i] = group[len(group)-1]
+		   return group[:len(group)-1]
+	   }
+   }
+   return group;
+}
+
+// checks if a number exist in a slice
+func numberInSlice(yourID uint32, list []uint32) bool {
+   for _, b := range list {
+	   if b == yourID {
+		   return true
+	   }
+   }
+   return false
+}
+
+
+
+
 
 
 // StartServers starts the client and replica servers.
