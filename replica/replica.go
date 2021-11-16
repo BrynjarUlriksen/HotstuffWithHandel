@@ -107,7 +107,7 @@ func New(conf Config, builder consensus.Builder) (replica *Replica) {
 			Certificates: []tls.Certificate{*conf.Certificate},
 		})
 	}
-	srv.cfg = backend.NewConfig(conf.ID, creds, managerOpts...)
+	srv.cfg = backend.NewConfig(binaryTreegroups, conf.ID, creds, managerOpts...)
 
 	builder.Register(
 		srv.cfg,                // configuration

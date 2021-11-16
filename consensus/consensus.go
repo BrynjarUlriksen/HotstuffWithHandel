@@ -1,6 +1,7 @@
 package consensus
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -198,6 +199,15 @@ func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 		return
 	}
 
+	// Get the replica that got the message
+	replica, okReplica := cs.mods.Configuration().Replica(cs.mods.ID())
+	if !okReplica {
+		cs.mods.Logger().Warnf("Replica with ID %d was not found!", leaderID)
+		return
+	}
+	fmt.Println("TEST 2: ", replica.BinaryTree())
+	fmt.Println("MYID: ", cs.mods.ID())
+	
 	leader.Vote(pc)
 }
 
