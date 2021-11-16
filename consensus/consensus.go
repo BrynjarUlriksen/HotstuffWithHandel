@@ -1,7 +1,6 @@
 package consensus
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -123,7 +122,6 @@ func (cs *consensusBase) Propose(cert SyncInfo) {
 
 func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 	cs.mods.Logger().Debugf("OnPropose: %v", proposal.Block)
-	fmt.Println("Dude, idk: ", cs.mods)
 	block := proposal.Block
 
 	// ensure the block came from the leader.
