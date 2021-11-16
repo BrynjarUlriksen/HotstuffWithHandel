@@ -126,10 +126,9 @@ func (w *Worker) createReplicas(req *orchestrationpb.CreateReplicaRequest) (*orc
 	//Math/rand is also not safe so we have to change to cypto/rand, however due to math/rand shuffle function we keep this for the time beeing
 
 	shuffledIds := ShuffleNodes(ids, Seed);
-	fmt.Println(shuffledIds);
 
 	for _, cfg := range req.GetReplicas() {
-		r, err := w.createReplica(cfg, ids)
+		r, err := w.createReplica(cfg, shuffledIds)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create replica: %w", err)
 		}
@@ -166,8 +165,10 @@ func (w *Worker) createReplicas(req *orchestrationpb.CreateReplicaRequest) (*orc
 }
 
 func (w *Worker) createReplica(opts *orchestrationpb.ReplicaOpts, ids []uint32) (*replica.Replica, error) {
+	var copiedIDs = make([]uint32, len(ids))
+	copy(copiedIDs, ids)
 	w.metricsLogger.Log(opts)
-
+	
 	// get private key and certificates
 	privKey, err := keygen.ParsePrivateKey(opts.GetPrivateKey())
 	if err != nil {
@@ -232,7 +233,7 @@ func (w *Worker) createReplica(opts *orchestrationpb.ReplicaOpts, ids []uint32) 
 
 
 	c := replica.Config{
-		IDList: 	 ids,
+		IDList: 	 copiedIDs,
 		ID:          hotstuff.ID(opts.GetID()),
 		PrivateKey:  privKey,
 		TLS:         opts.GetUseTLS(),
