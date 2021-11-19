@@ -32,7 +32,7 @@ func (srv *Server) InitConsensusModule(mods *consensus.Modules, _ *consensus.Opt
 }
 
 // NewServer creates a new Server.
-func NewServer(opts ...gorums.ServerOption) *Server {
+func NewServer( opts ...gorums.ServerOption ) *Server {
 	srv := &Server{}
 
 	grpcServerOpts := []grpc.ServerOption{}

@@ -1,6 +1,9 @@
 package consensus
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 // Rules is the minimum interface that a consensus implementations must implement.
 // Implementations of this interface can be wrapped in the ConsensusBase struct.
@@ -120,7 +123,6 @@ func (cs *consensusBase) Propose(cert SyncInfo) {
 
 func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 	cs.mods.Logger().Debugf("OnPropose: %v", proposal.Block)
-
 	block := proposal.Block
 
 	// ensure the block came from the leader.
@@ -197,6 +199,15 @@ func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 		return
 	}
 
+	// Get the replica that got the message
+	replica, okReplica := cs.mods.Configuration().Replica(cs.mods.ID())
+	if !okReplica {
+		cs.mods.Logger().Warnf("Replica with ID %d was not found!", leaderID)
+		return
+	}
+	fmt.Println("TEST 2: ", replica.BinaryTree())
+	fmt.Println("MYID: ", cs.mods.ID())
+	
 	leader.Vote(pc)
 }
 

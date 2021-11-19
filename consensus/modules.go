@@ -337,6 +337,9 @@ type Replica interface {
 	Vote(cert PartialCert)
 	// NewView sends the quorum certificate to the other replica.
 	NewView(SyncInfo)
+
+	//BinaryTree
+	BinaryTree() [][]uint32
 }
 
 //go:generate mockgen -destination=../internal/mocks/configuration_mock.go -package=mocks . Configuration

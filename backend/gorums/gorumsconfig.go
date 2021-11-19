@@ -25,6 +25,7 @@ type gorumsReplica struct {
 	pubKey        consensus.PublicKey
 	voteCancel    context.CancelFunc
 	newviewCancel context.CancelFunc
+	binaryTree    [][]uint32
 }
 
 // ID returns the replica's ID.
@@ -35,6 +36,11 @@ func (r *gorumsReplica) ID() hotstuff.ID {
 // PublicKey returns the replica's public key.
 func (r *gorumsReplica) PublicKey() consensus.PublicKey {
 	return r.pubKey
+}
+
+// PublicKey returns the replica's public key.
+func (r *gorumsReplica) BinaryTree() [][]uint32 {
+	return r.binaryTree
 }
 
 // Vote sends the partial certificate to the other replica.
@@ -70,6 +76,7 @@ type Config struct {
 	replicas      map[hotstuff.ID]consensus.Replica
 	proposeCancel context.CancelFunc
 	timeoutCancel context.CancelFunc
+	binaryTree    [][]uint32
 }
 
 // InitConsensusModule gives the module a reference to the Modules object.
@@ -79,11 +86,12 @@ func (cfg *Config) InitConsensusModule(mods *consensus.Modules, _ *consensus.Opt
 }
 
 // NewConfig creates a new configuration.
-func NewConfig(id hotstuff.ID, creds credentials.TransportCredentials, opts ...gorums.ManagerOption) *Config {
+func NewConfig(Binarytree [][]uint32, id hotstuff.ID, creds credentials.TransportCredentials, opts ...gorums.ManagerOption) *Config {
 	cfg := &Config{
 		replicas:      make(map[hotstuff.ID]consensus.Replica),
 		proposeCancel: func() {},
 		timeoutCancel: func() {},
+		binaryTree: Binarytree,
 	}
 	// embed own ID to allow other replicas to identify messages from this replica
 	md := metadata.New(map[string]string{
@@ -110,6 +118,7 @@ func NewConfig(id hotstuff.ID, creds credentials.TransportCredentials, opts ...g
 
 // Connect opens connections to the replicas in the configuration.
 func (cfg *Config) Connect(replicaCfg *config.ReplicaConfig) (err error) {
+	fmt.Println("DOES IT ARRIVE HERE?: ", cfg.binaryTree)
 	idMapping := make(map[string]uint32, len(replicaCfg.Replicas)-1)
 	for _, replica := range replicaCfg.Replicas {
 		cfg.replicas[replica.ID] = &gorumsReplica{
@@ -117,6 +126,7 @@ func (cfg *Config) Connect(replicaCfg *config.ReplicaConfig) (err error) {
 			pubKey:        replica.PubKey,
 			newviewCancel: func() {},
 			voteCancel:    func() {},
+			binaryTree:    cfg.binaryTree,
 		}
 		if replica.ID != replicaCfg.ID {
 			idMapping[replica.Address] = uint32(replica.ID)

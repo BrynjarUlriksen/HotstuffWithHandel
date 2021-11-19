@@ -9,6 +9,7 @@ import (
 	"net"
 	"strconv"
 	"time"
+	MR "math/rand"
 
 	"github.com/relab/gorums"
 	"github.com/relab/hotstuff"
@@ -102,10 +103,32 @@ func NewWorker(send *protostream.Writer, recv *protostream.Reader, dl modules.Me
 	}
 }
 
+// func shuffle 
+func ShuffleNodes(nodes []uint32, seed int64) []uint32{
+    MR.Seed(seed);
+    MR.Shuffle(len(nodes), func(i, j int){nodes[i], nodes[j] = nodes[j], nodes[i] });
+    return nodes;
+}
+
+
 func (w *Worker) createReplicas(req *orchestrationpb.CreateReplicaRequest) (*orchestrationpb.CreateReplicaResponse, error) {
 	resp := &orchestrationpb.CreateReplicaResponse{Replicas: make(map[uint32]*orchestrationpb.ReplicaInfo)}
+
+	//need a list of ids. 
+	var ids []uint32
+	for _, cfgs := range req.GetReplicas(){
+		oneID := cfgs.GetID();
+		ids = append(ids, oneID);
+	}
+	fmt.Println("IDS: ", ids)
+	//  Need a random seed
+	Seed := int64(1); // insert random here, 1 used for consistency 
+	//Math/rand is also not safe so we have to change to cypto/rand, however due to math/rand shuffle function we keep this for the time beeing
+
+	shuffledIds := ShuffleNodes(ids, Seed);
+
 	for _, cfg := range req.GetReplicas() {
-		r, err := w.createReplica(cfg)
+		r, err := w.createReplica(cfg, shuffledIds)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create replica: %w", err)
 		}
@@ -141,9 +164,11 @@ func (w *Worker) createReplicas(req *orchestrationpb.CreateReplicaRequest) (*orc
 	return resp, nil
 }
 
-func (w *Worker) createReplica(opts *orchestrationpb.ReplicaOpts) (*replica.Replica, error) {
+func (w *Worker) createReplica(opts *orchestrationpb.ReplicaOpts, ids []uint32) (*replica.Replica, error) {
+	var copiedIDs = make([]uint32, len(ids))
+	copy(copiedIDs, ids)
 	w.metricsLogger.Log(opts)
-
+	
 	// get private key and certificates
 	privKey, err := keygen.ParsePrivateKey(opts.GetPrivateKey())
 	if err != nil {
@@ -206,7 +231,9 @@ func (w *Worker) createReplica(opts *orchestrationpb.ReplicaOpts) (*replica.Repl
 		builder.Register(metrics.NewTicker(w.measurementInterval))
 	}
 
+
 	c := replica.Config{
+		IDList: 	 copiedIDs,
 		ID:          hotstuff.ID(opts.GetID()),
 		PrivateKey:  privKey,
 		TLS:         opts.GetUseTLS(),
