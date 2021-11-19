@@ -43,6 +43,10 @@ func (r *gorumsReplica) BinaryTree() [][]uint32 {
 	return r.binaryTree
 }
 
+func (r *gorumsReplica) ExchangeSignature(cert consensus.PartialCert) {
+
+}
+
 // Vote sends the partial certificate to the other replica.
 func (r *gorumsReplica) Vote(cert consensus.PartialCert) {
 	if r.node == nil {
@@ -91,7 +95,7 @@ func NewConfig(Binarytree [][]uint32, id hotstuff.ID, creds credentials.Transpor
 		replicas:      make(map[hotstuff.ID]consensus.Replica),
 		proposeCancel: func() {},
 		timeoutCancel: func() {},
-		binaryTree: Binarytree,
+		binaryTree:    Binarytree,
 	}
 	// embed own ID to allow other replicas to identify messages from this replica
 	md := metadata.New(map[string]string{

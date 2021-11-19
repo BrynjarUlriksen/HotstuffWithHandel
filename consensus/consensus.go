@@ -1,8 +1,13 @@
 package consensus
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"sync"
+	"time"
+
+	"github.com/relab/hotstuff"
 )
 
 // Rules is the minimum interface that a consensus implementations must implement.
@@ -202,13 +207,49 @@ func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 	// Get the replica that got the message
 	replica, okReplica := cs.mods.Configuration().Replica(cs.mods.ID())
 	if !okReplica {
-		cs.mods.Logger().Warnf("Replica with ID %d was not found!", leaderID)
+		cs.mods.Logger().Warnf("Replica with ID %d was not found!", cs.mods.ID())
 		return
 	}
-	fmt.Println("TEST 2: ", replica.BinaryTree())
-	fmt.Println("MYID: ", cs.mods.ID())
-	
+
+	var MyTree = make([][]uint32, len(replica.BinaryTree()))
+	copy(MyTree, replica.BinaryTree())
+
+	for level := 0; level < len(replica.BinaryTree()); level++ {
+		next := GetNextReplica(MyTree)
+		MyTree = MyTree[1:]
+		replica, okReplica := cs.mods.Configuration().Replica(hotstuff.ID(next))
+		if !okReplica {
+			cs.mods.Logger().Warnf("Replica with ID %d was not found!", cs.mods.ID())
+			return
+			replica.ExchangeSignature(pc)
+			time.Sleep(20 * time.Millisecond)
+		}
+	}
+
+	fmt.Println("TEST BinaryTree: ", replica.BinaryTree())
+	fmt.Println("TEST COPY: ", MyTree)
+	time.Sleep(20 * time.Millisecond)
 	leader.Vote(pc)
+}
+
+func GetNextReplica(binaryTree [][]uint32) uint32 {
+	currentLevel := binaryTree[0]
+	return currentLevel[genRandNum(0, int64(len(currentLevel)))]
+}
+
+func genRandNum(min, max int64) int {
+	// calculate the max we will be using
+	bg := big.NewInt(max - min)
+
+	// get big.Int between 0 and bg
+	// in this case 0 to 20
+	n, err := rand.Int(rand.Reader, bg)
+	if err != nil {
+		panic(err)
+	}
+
+	// add n to min to support the passed in range
+	return int(n.Int64() + min)
 }
 
 func (cs *consensusBase) commit(block *Block) {
