@@ -27,6 +27,10 @@ type cmdID struct {
 
 // Config configures a replica.
 type Config struct {
+
+	//Ids of other replicas
+	IDList []uint32
+
 	// The id of the replica.
 	ID hotstuff.ID
 	// The private key of the replica.
@@ -49,10 +53,11 @@ type Config struct {
 
 // Replica is a participant in the consensus protocol.
 type Replica struct {
-	clientSrv *clientSrv
-	cfg       *backend.Config
-	hsSrv     *backend.Server
-	hs        *consensus.Modules
+	clientSrv  *clientSrv
+	cfg        *backend.Config
+	hsSrv      *backend.Server
+	hs         *consensus.Modules
+	BinaryTree *[][]uint32
 
 	execHandlers map[cmdID]func(*empty.Empty, error)
 	cancel       context.CancelFunc
@@ -61,6 +66,9 @@ type Replica struct {
 
 // New returns a new replica.
 func New(conf Config, builder consensus.Builder) (replica *Replica) {
+	IdList := conf.IDList
+	binaryTreegroups := MakeBinaryTree(IdList, uint32(conf.ID))
+
 	clientSrvOpts := conf.ClientServerOptions
 
 	if conf.TLS {
@@ -99,7 +107,7 @@ func New(conf Config, builder consensus.Builder) (replica *Replica) {
 			Certificates: []tls.Certificate{*conf.Certificate},
 		})
 	}
-	srv.cfg = backend.NewConfig(conf.ID, creds, managerOpts...)
+	srv.cfg = backend.NewConfig(binaryTreegroups, conf.ID, creds, managerOpts...)
 
 	builder.Register(
 		srv.cfg,                // configuration
@@ -109,15 +117,81 @@ func New(conf Config, builder consensus.Builder) (replica *Replica) {
 		logging.New("hs"+strconv.Itoa(int(conf.ID))),
 	)
 	srv.hs = builder.Build()
-
+	srv.BinaryTree = &binaryTreegroups
 	return srv
 }
-// creates binary tree
-func (srv *Replica) calculateLevels(replicas *config.ReplicaConfig) error {
 
-	return srv.cfg.Connect(replicas)
+// creates binary tree
+func MakeBinaryTree(nodes []uint32, yourID uint32) [][]uint32 {
+	groupSize := 2
+	levelTree := make(map[int][][]uint32)
+
+	levelCounter := 0
+	for groupSize <= len(nodes) {
+		currentLevel := SplitToSubarrays(nodes, groupSize)
+		levelTree[levelCounter] = currentLevel
+		groupSize = groupSize * 2
+		levelCounter++
+
+	}
+	// leveltree created. now we create an array node
+	//can follow while communicating
+	var myTree [][]uint32
+	poppedElements := []uint32{yourID}
+	for level := 0; level <= levelCounter; level++ {
+		currentLevel := levelTree[level]
+
+		for _, group := range currentLevel {
+			var groupCopy = make([]uint32, len(group))
+			copy(groupCopy, group)
+			if numberInSlice(yourID, groupCopy) {
+				groupWithoutElements := popElement(poppedElements,
+					groupCopy)
+				myTree = append(myTree, groupWithoutElements)
+				poppedElements = append(poppedElements, groupCopy...)
+			}
+		}
+	}
+	return myTree
 }
 
+// splits nodes in group based on groupsize
+func SplitToSubarrays(nodes []uint32, size int) [][]uint32 {
+	var subarrays [][]uint32
+	var j int
+	for i := 0; i < len(nodes); i += size {
+		j += size
+		if j > len(nodes) {
+			j = len(nodes)
+		}
+		subarrays = append(subarrays, nodes[i:j])
+
+	}
+	return subarrays
+}
+
+// pops element from slice
+func popElement(poppedElements []uint32, group []uint32) []uint32 {
+	for _, element := range poppedElements {
+		for i, b := range group {
+			if b == element {
+				group[i] = group[len(group)-1]
+				group = group[:len(group)-1]
+			}
+		}
+	}
+	return group
+}
+
+// checks if a number exist in a slice
+func numberInSlice(yourID uint32, list []uint32) bool {
+	for _, b := range list {
+		if b == yourID {
+			return true
+		}
+	}
+	return false
+}
 
 // StartServers starts the client and replica servers.
 func (srv *Replica) StartServers(replicaListen, clientListen net.Listener) {
