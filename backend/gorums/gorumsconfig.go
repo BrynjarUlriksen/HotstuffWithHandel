@@ -43,8 +43,8 @@ func (r *gorumsReplica) BinaryTree() [][]uint32 {
 	return r.binaryTree
 }
 
-func (r *gorumsReplica) ExchangeSignature(cert consensus.PartialCert) {
-
+func (r *gorumsReplica) ExchangeSignature(cert consensus.PartialCert, id hotstuff.ID) {
+	fmt.Println(r.id, "Recieved exchange signature request from ", r.id )
 }
 
 // Vote sends the partial certificate to the other replica.
@@ -122,7 +122,6 @@ func NewConfig(Binarytree [][]uint32, id hotstuff.ID, creds credentials.Transpor
 
 // Connect opens connections to the replicas in the configuration.
 func (cfg *Config) Connect(replicaCfg *config.ReplicaConfig) (err error) {
-	fmt.Println("DOES IT ARRIVE HERE?: ", cfg.binaryTree)
 	idMapping := make(map[string]uint32, len(replicaCfg.Replicas)-1)
 	for _, replica := range replicaCfg.Replicas {
 		cfg.replicas[replica.ID] = &gorumsReplica{

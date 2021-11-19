@@ -221,9 +221,9 @@ func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 		if !okReplica {
 			cs.mods.Logger().Warnf("Replica with ID %d was not found!", cs.mods.ID())
 			return
-			replica.ExchangeSignature(pc)
-			time.Sleep(20 * time.Millisecond)
 		}
+		replica.ExchangeSignature(pc, cs.mods.ID())
+		time.Sleep(20 * time.Millisecond)
 	}
 
 	fmt.Println("TEST BinaryTree: ", replica.BinaryTree())

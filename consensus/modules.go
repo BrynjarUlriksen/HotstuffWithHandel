@@ -340,6 +340,9 @@ type Replica interface {
 
 	//BinaryTree
 	BinaryTree() [][]uint32
+
+	// ExchangeSignature
+	ExchangeSignature(cert PartialCert, id hotstuff.ID)
 }
 
 //go:generate mockgen -destination=../internal/mocks/configuration_mock.go -package=mocks . Configuration
