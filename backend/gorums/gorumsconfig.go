@@ -44,7 +44,7 @@ func (r *gorumsReplica) BinaryTree() [][]uint32 {
 }
 
 func (r *gorumsReplica) ExchangeSignature(cert consensus.PartialCert, id hotstuff.ID) {
-	fmt.Println(r.id, "Recieved exchange signature request from ", r.id )
+	fmt.Println(r.id, "Recieved exchange signature request from ", id )
 }
 
 // Vote sends the partial certificate to the other replica.
