@@ -17,6 +17,10 @@ service Hotstuff {
     option (gorums.unicast) = true;
   }
 
+  rpc RequestHandelCertificate(cert) returns (google.protobif.Empty){
+    option (gorums.unicast) = true;
+  }
+
   rpc Timeout(TimeoutMsg) returns (google.protobuf.Empty) {
     option (gorums.multicast) = true;
   }
@@ -51,10 +55,16 @@ message ECDSASignature {
 
 message BLS12Signature { bytes Sig = 1; }
 
+message HandelSignature {
+  bytes signatures = 1;
+}
+
+
 message Signature {
   oneof Sig {
     ECDSASignature ECDSASig = 1;
     BLS12Signature BLS12Sig = 2;
+    HandelSignature HandelSig = 3; 
   }
 }
 
@@ -74,6 +84,7 @@ message ThresholdSignature {
   oneof AggSig {
     ECDSAThresholdSignature ECDSASigs = 1;
     BLS12AggregateSignature BLS12Sig = 2;
+    HandelSignature Handelsig = 3;
   }
 }
 

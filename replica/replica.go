@@ -53,11 +53,12 @@ type Config struct {
 
 // Replica is a participant in the consensus protocol.
 type Replica struct {
-	clientSrv  *clientSrv
-	cfg        *backend.Config
-	hsSrv      *backend.Server
-	hs         *consensus.Modules
-	BinaryTree *[][]uint32
+	clientSrv         *clientSrv
+	cfg               *backend.Config
+	hsSrv             *backend.Server
+	hs                *consensus.Modules
+	BinaryTree        *[][]uint32
+	HandelCertificate *[]string
 
 	execHandlers map[cmdID]func(*empty.Empty, error)
 	cancel       context.CancelFunc
@@ -107,7 +108,8 @@ func New(conf Config, builder consensus.Builder) (replica *Replica) {
 			Certificates: []tls.Certificate{*conf.Certificate},
 		})
 	}
-	srv.cfg = backend.NewConfig(binaryTreegroups, conf.ID, creds, managerOpts...)
+	initCert := GetInitialHandelCert(conf.ID)
+	srv.cfg = backend.NewConfig(initCert, binaryTreegroups, conf.ID, creds, managerOpts...)
 
 	builder.Register(
 		srv.cfg,                // configuration
@@ -118,7 +120,26 @@ func New(conf Config, builder consensus.Builder) (replica *Replica) {
 	)
 	srv.hs = builder.Build()
 	srv.BinaryTree = &binaryTreegroups
+	
+
+	srv.HandelCertificate = &initCert
 	return srv
+}
+
+//Creates a basic cert
+func GetInitialHandelCert(id hotstuff.ID) []string {
+
+	switch id {
+	case 1:
+		return []string{"A"}
+	case 2:
+		return []string{"B"}
+	case 3:
+		return []string{"C"}
+	case 4:
+		return []string{"D"}
+	}
+	return []string{"NoCert"}
 }
 
 // creates binary tree

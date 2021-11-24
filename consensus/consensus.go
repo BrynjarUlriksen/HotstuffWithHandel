@@ -210,6 +210,8 @@ func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 		cs.mods.Logger().Warnf("Replica with ID %d was not found!", cs.mods.ID())
 		return
 	}
+	mycert := replica.HandelCertificate()
+	fmt.Println("Replica : ", cs.mods.ID(), " Cert: ", replica.HandelCertificate())
 
 	var MyTree = make([][]uint32, len(replica.BinaryTree()))
 	copy(MyTree, replica.BinaryTree())
@@ -217,17 +219,17 @@ func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 	for level := 0; level < len(replica.BinaryTree()); level++ {
 		next := GetNextReplica(MyTree)
 		MyTree = MyTree[1:]
-		replica, okReplica := cs.mods.Configuration().Replica(hotstuff.ID(next))
+		nextReplica, okReplica := cs.mods.Configuration().Replica(hotstuff.ID(next))
 		if !okReplica {
 			cs.mods.Logger().Warnf("Replica with ID %d was not found!", cs.mods.ID())
 			return
 		}
-		replica.ExchangeSignature(pc, cs.mods.ID())
+		fmt.Println("Mcert: ", cs.mods.ID(), mycert)
+		fmt.Println(next,"'s CERT: ", replica.HandelCertificate())
+		nextReplica.ExchangeSignature(mycert, cs.mods.ID())
 		time.Sleep(20 * time.Millisecond)
 	}
 
-	fmt.Println("TEST BinaryTree: ", replica.BinaryTree())
-	fmt.Println("TEST COPY: ", MyTree)
 	time.Sleep(20 * time.Millisecond)
 	leader.Vote(pc)
 }

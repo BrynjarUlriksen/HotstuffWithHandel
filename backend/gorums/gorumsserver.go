@@ -126,8 +126,17 @@ func (srv *Server) Propose(ctx gorums.ServerCtx, proposal *hotstuffpb.Proposal) 
 	srv.mods.EventLoop().AddEvent(proposeMsg)
 }
 
+// RequestHandeCertificate handles an incoming requestCertificate
+func (srv *Server)RequestHandelCertificate(ctx gorums.ServerCtx, cert []string){
+	
+}
+
+
+
+
 // Vote handles an incoming vote message.
 func (srv *Server) Vote(ctx gorums.ServerCtx, cert *hotstuffpb.PartialCert) {
+	fmt.Println("TESTING VOTE")
 	id, err := srv.getClientID(ctx)
 	if err != nil {
 		srv.mods.Logger().Infof("Failed to get client ID: %v", err)
