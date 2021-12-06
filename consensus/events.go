@@ -60,3 +60,9 @@ type NewViewMsg struct {
 type CommitEvent struct {
 	Commands int
 }
+
+
+type HandelMessage struct{
+	ID hotstuff.ID
+	HandelCertificate []string
+}

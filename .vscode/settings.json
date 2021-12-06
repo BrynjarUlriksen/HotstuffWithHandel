@@ -10,5 +10,15 @@
 			"addWords": true,
 			"path": "${workspaceRoot}/.vscode/dict.txt",
 		}
-	]
+	],
+
+	"protoc": {
+        "compile_on_save": false,
+        "options": [
+            "--proto_path=protos/v3",
+            "--proto_path=${workspaceRoot}/internal/proto",
+            "--proto_path=${env.GOPATH}/src",
+            "--java_out=gen/java"
+        ]
+    }
 }

@@ -128,7 +128,15 @@ func (srv *Server) Propose(ctx gorums.ServerCtx, proposal *hotstuffpb.Proposal) 
 
 // RequestHandeCertificate handles an incoming requestCertificate
 func (srv *Server)RequestHandelCertificate(ctx gorums.ServerCtx, cert []string){
-	
+	id, err := srv.getClientID(ctx)
+	if err != nil {
+		srv.mods.Logger().Infof("Failed to get client ID: %v", err)
+		return
+	}
+	srv.mods.EventLoop().AddEvent(consensus.HandelMessage{
+		ID:          id,
+		HandelCertificate: cert,
+	})
 }
 
 

@@ -17,7 +17,7 @@ service Hotstuff {
     option (gorums.unicast) = true;
   }
 
-  rpc RequestHandelCertificate(cert) returns (google.protobif.Empty){
+  rpc RequestHandelCertificate(HandelSignature) returns (google.protobuf.Empty){
     option (gorums.unicast) = true;
   }
 
@@ -72,6 +72,8 @@ message PartialCert {
   Signature Sig = 1;
   bytes Hash = 2;
 }
+
+
 
 message ECDSAThresholdSignature { repeated ECDSASignature Sigs = 1; }
 

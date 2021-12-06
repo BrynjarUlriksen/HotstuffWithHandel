@@ -106,6 +106,7 @@ type ThresholdSignature interface {
 	Participants() IDSet
 }
 
+
 // PartialCert is a signed block hash.
 type PartialCert struct {
 	signature Signature
