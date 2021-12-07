@@ -58,7 +58,7 @@ type Replica struct {
 	hsSrv             *backend.Server
 	hs                *consensus.Modules
 	BinaryTree        *[][]uint32
-	HandelCertificate *[]string
+	HandelCertificate *string
 
 	execHandlers map[cmdID]func(*empty.Empty, error)
 	cancel       context.CancelFunc
@@ -127,19 +127,19 @@ func New(conf Config, builder consensus.Builder) (replica *Replica) {
 }
 
 //Creates a basic cert
-func GetInitialHandelCert(id hotstuff.ID) []string {
+func GetInitialHandelCert(id hotstuff.ID) string {
 
 	switch id {
 	case 1:
-		return []string{"A"}
+		return "A"
 	case 2:
-		return []string{"B"}
+		return "B"
 	case 3:
-		return []string{"C"}
+		return "C"
 	case 4:
-		return []string{"D"}
+		return "D"
 	}
-	return []string{"NoCert"}
+	return "NoCert"
 }
 
 // creates binary tree

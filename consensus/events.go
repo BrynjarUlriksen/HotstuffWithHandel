@@ -64,5 +64,5 @@ type CommitEvent struct {
 
 type HandelMessage struct{
 	ID hotstuff.ID
-	HandelCertificate []string
+	HandelCertificate string
 }

@@ -32,7 +32,7 @@ func (srv *Server) InitConsensusModule(mods *consensus.Modules, _ *consensus.Opt
 }
 
 // NewServer creates a new Server.
-func NewServer( opts ...gorums.ServerOption ) *Server {
+func NewServer(opts ...gorums.ServerOption) *Server {
 	srv := &Server{}
 
 	grpcServerOpts := []grpc.ServerOption{}
@@ -127,20 +127,17 @@ func (srv *Server) Propose(ctx gorums.ServerCtx, proposal *hotstuffpb.Proposal) 
 }
 
 // RequestHandeCertificate handles an incoming requestCertificate
-func (srv *Server)RequestHandelCertificate(ctx gorums.ServerCtx, cert []string){
+func (srv *Server) RequestHandelCertificate(ctx gorums.ServerCtx, cert *hotstuffpb.HandelSignature) {
 	id, err := srv.getClientID(ctx)
 	if err != nil {
 		srv.mods.Logger().Infof("Failed to get client ID: %v", err)
 		return
 	}
 	srv.mods.EventLoop().AddEvent(consensus.HandelMessage{
-		ID:          id,
-		HandelCertificate: cert,
+		ID:                id,
+		HandelCertificate: cert.Signatures,
 	})
 }
-
-
-
 
 // Vote handles an incoming vote message.
 func (srv *Server) Vote(ctx gorums.ServerCtx, cert *hotstuffpb.PartialCert) {

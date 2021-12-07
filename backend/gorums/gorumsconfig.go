@@ -26,7 +26,7 @@ type gorumsReplica struct {
 	voteCancel        context.CancelFunc
 	newviewCancel     context.CancelFunc
 	binaryTree        [][]uint32
-	handelCertificate []string
+	handelCertificate string
 }
 
 // ID returns the replica's ID.
@@ -44,18 +44,23 @@ func (r *gorumsReplica) BinaryTree() [][]uint32 {
 	return r.binaryTree
 }
 
-func (r *gorumsReplica) HandelCertificate() []string {
+func (r *gorumsReplica) HandelCertificate() string {
 	return r.handelCertificate
 }
 
-// recieves the request and thus must send back to the other replica the aggregated partial certificate.
-func (r *gorumsReplica) ExchangeSignature(cert []string, id hotstuff.ID) {
-	fmt.Println(r.id, r.handelCertificate, "Recieved exchange signature request from ", id, " with cert: ", cert)
-	r.ValidateAndAggregateHandel(cert)
-	fmt.Println("new Certificate : ", r.handelCertificate)
+// ExchangeSignature sends the partial certificate to the other replica.
+func (r *gorumsReplica) ExchangeSignature(cert string, id hotstuff.ID) {
+	print("CERT and ID: ", cert, id)
+	if r.node == nil {
+		return
+	}
+	var ctx context.Context
+	pCert := &hotstuffpb.HandelSignature{Signatures: cert}
+	r.node.RequestHandelCertificate(ctx, pCert, gorums.WithNoSendWaiting())
+	//r.ValidateAndAggregateHandel(cert)
 	//TODO: VALIDATE Partial certificate,
 	//r.node.Vote()
-	//r.node.RequestHandelCertificate()
+	//r.node.RequestHandelCertificate(cert consensus.H&hotstuffpb.HandelSignature{})
 }
 
 // simple contains function
@@ -69,16 +74,16 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func (r *gorumsReplica) ValidateAndAggregateHandel(cert []string) {
-	myCert := r.handelCertificate
-	for _, partialcert := range cert {
-		if !contains(myCert, partialcert) {
-			r.handelCertificate = append(r.handelCertificate, partialcert)
-		}
+// func (r *gorumsReplica) ValidateAndAggregateHandel(cert string) {
+// 	myCert := r.handelCertificate
+// 	for _, partialcert := range cert {
+// 		if !contains(myCert, partialcert) {
+// 			r.handelCertificate = append(r.handelCertificate, partialcert)
+// 		}
 
-	}
+// 	}
 
-}
+// }
 
 // Vote sends the partial certificate to the other replica.
 func (r *gorumsReplica) Vote(cert consensus.PartialCert) {
@@ -114,7 +119,7 @@ type Config struct {
 	proposeCancel     context.CancelFunc
 	timeoutCancel     context.CancelFunc
 	binaryTree        [][]uint32
-	handelCertificate []string
+	handelCertificate string
 }
 
 // InitConsensusModule gives the module a reference to the Modules object.
@@ -124,7 +129,7 @@ func (cfg *Config) InitConsensusModule(mods *consensus.Modules, _ *consensus.Opt
 }
 
 // NewConfig creates a new configuration.
-func NewConfig(initCert []string, Binarytree [][]uint32, id hotstuff.ID, creds credentials.TransportCredentials, opts ...gorums.ManagerOption) *Config {
+func NewConfig(initCert string, Binarytree [][]uint32, id hotstuff.ID, creds credentials.TransportCredentials, opts ...gorums.ManagerOption) *Config {
 	cfg := &Config{
 		replicas:          make(map[hotstuff.ID]consensus.Replica),
 		proposeCancel:     func() {},

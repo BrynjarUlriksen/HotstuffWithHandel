@@ -342,9 +342,9 @@ type Replica interface {
 	BinaryTree() [][]uint32
 
 	//HandelCertificate
-	HandelCertificate() []string
+	HandelCertificate() string
 	// ExchangeSignature
-	ExchangeSignature(cert []string, id hotstuff.ID)
+	ExchangeSignature(cert string, id hotstuff.ID)
 }
 
 //go:generate mockgen -destination=../internal/mocks/configuration_mock.go -package=mocks . Configuration

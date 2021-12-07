@@ -62,9 +62,29 @@ func (cs *consensusBase) InitConsensusModule(mods *Modules, opts *OptionsBuilder
 	if mod, ok := cs.impl.(Module); ok {
 		mod.InitConsensusModule(mods, opts)
 	}
+
+	//REGISTERS HANDLER
+	cs.mods.EventLoop().RegisterHandler(HandelMessage{}, func(event interface{}) {
+		cs.HandelCertificateRequest(event.(HandelMessage))
+	})
 	cs.mods.EventLoop().RegisterHandler(ProposeMsg{}, func(event interface{}) {
 		cs.OnPropose(event.(ProposeMsg))
 	})
+}
+
+// HandleCertificateRequest gets the incoming message and aggregates it
+func (cs *consensusBase) HandelCertificateRequest(handelMessage HandelMessage) {
+	print("ID we got message from: ", handelMessage.ID, " CERT: ", handelMessage.HandelCertificate)
+
+	replica, okReplica := cs.mods.Configuration().Replica(cs.mods.ID())
+	if !okReplica {
+		cs.mods.Logger().Warnf("Replica with ID %d was not found!", cs.mods.ID())
+		return
+	}
+	mycert := replica.HandelCertificate()
+
+	print("Aggregated: ", mycert, handelMessage.HandelCertificate)
+	//TODO CREATE FUNCTION TO HANDLE CERTIFICATE
 }
 
 // StopVoting ensures that no voting happens in a view earlier than `view`.
@@ -225,7 +245,7 @@ func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 			return
 		}
 		fmt.Println("Mcert: ", cs.mods.ID(), mycert)
-		fmt.Println(next,"'s CERT: ", replica.HandelCertificate())
+		fmt.Println(next, "'s CERT: ", replica.HandelCertificate())
 		nextReplica.ExchangeSignature(mycert, cs.mods.ID())
 		time.Sleep(20 * time.Millisecond)
 	}
