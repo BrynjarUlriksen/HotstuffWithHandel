@@ -25,6 +25,7 @@ type gorumsReplica struct {
 	pubKey            consensus.PublicKey
 	voteCancel        context.CancelFunc
 	newviewCancel     context.CancelFunc
+	handelCancel 	  context.CancelFunc
 	binaryTree        [][]uint32
 	handelCertificate string
 }
@@ -55,6 +56,8 @@ func (r *gorumsReplica) ExchangeSignature(cert string, id hotstuff.ID) {
 		return
 	}
 	var ctx context.Context
+	r.handelCancel()
+	ctx, r.handelCancel = context.WithCancel(context.Background())
 	pCert := &hotstuffpb.HandelSignature{Signatures: cert}
 	r.node.RequestHandelCertificate(ctx, pCert, gorums.WithNoSendWaiting())
 	//r.ValidateAndAggregateHandel(cert)
