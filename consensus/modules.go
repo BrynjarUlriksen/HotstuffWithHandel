@@ -343,6 +343,9 @@ type Replica interface {
 
 	//HandelCertificate
 	HandelCertificate() string
+
+	//SetHandelCertificate
+	SetHandelCertificate(cert string) string
 	// ExchangeSignature
 	ExchangeSignature(cert string, id hotstuff.ID)
 }

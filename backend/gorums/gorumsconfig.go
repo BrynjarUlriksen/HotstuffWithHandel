@@ -49,6 +49,12 @@ func (r *gorumsReplica) HandelCertificate() string {
 	return r.handelCertificate
 }
 
+func (r *gorumsReplica) SetHandelCertificate(certificate string) string {
+	r.handelCertificate = certificate
+	return r.handelCertificate
+}
+
+
 // ExchangeSignature sends the partial certificate to the other replica.
 func (r *gorumsReplica) ExchangeSignature(cert string, id hotstuff.ID) {
 	if r.node == nil {

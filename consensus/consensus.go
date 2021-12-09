@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"strings"
 	"sync"
 	"time"
 
@@ -74,7 +75,7 @@ func (cs *consensusBase) InitConsensusModule(mods *Modules, opts *OptionsBuilder
 
 // HandleCertificateRequest gets the incoming message and aggregates it
 func (cs *consensusBase) HandelCertificateRequest(handelMessage HandelMessage) {
-	print("ID we got message from: ", handelMessage.ID, " CERT: ", handelMessage.HandelCertificate)
+	
 
 	replica, okReplica := cs.mods.Configuration().Replica(cs.mods.ID())
 	if !okReplica {
@@ -82,9 +83,30 @@ func (cs *consensusBase) HandelCertificateRequest(handelMessage HandelMessage) {
 		return
 	}
 	mycert := replica.HandelCertificate()
+	
+	 if !VerifyHandel(handelMessage.HandelCertificate){
+		cs.mods.Logger().Warnf("certificate invalid", cs.mods.ID())
+		return
+	 }
 
-	print("Aggregated: ", mycert, handelMessage.HandelCertificate)
-	//TODO CREATE FUNCTION TO HANDLE CERTIFICATE
+	replica.SetHandelCertificate(AggregateHandel(mycert, handelMessage.HandelCertificate))
+
+}
+
+
+func VerifyHandel(cert string) bool{
+	//Dummy verify handel function
+	return true;
+}
+
+func AggregateHandel(cert1 string, cert2 string)  string{
+	resultList := strings.Split(cert1, "")
+	for _, partialCert := range strings.Split(cert2, "") {
+		if !strings.Contains(strings.Join(resultList,""), partialCert) {
+			resultList = append(resultList, partialCert)
+		}
+	}
+	return strings.Join(resultList,"")
 }
 
 // StopVoting ensures that no voting happens in a view earlier than `view`.
@@ -250,7 +272,9 @@ func (cs *consensusBase) OnPropose(proposal ProposeMsg) {
 		time.Sleep(20 * time.Millisecond)
 	}
 
+
 	time.Sleep(20 * time.Millisecond)
+	fmt.Println("JUST BEFORE SENDING TO LEADER: ", replica.HandelCertificate())
 	leader.Vote(pc)
 }
 
