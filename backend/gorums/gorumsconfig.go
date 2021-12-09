@@ -25,7 +25,7 @@ type gorumsReplica struct {
 	pubKey            consensus.PublicKey
 	voteCancel        context.CancelFunc
 	newviewCancel     context.CancelFunc
-	handelCancel 	  context.CancelFunc
+	handelCancel      context.CancelFunc
 	binaryTree        [][]uint32
 	handelCertificate string
 }
@@ -51,14 +51,15 @@ func (r *gorumsReplica) HandelCertificate() string {
 
 // ExchangeSignature sends the partial certificate to the other replica.
 func (r *gorumsReplica) ExchangeSignature(cert string, id hotstuff.ID) {
-	print("CERT and ID: ", cert, id)
 	if r.node == nil {
 		return
 	}
 	var ctx context.Context
 	r.handelCancel()
 	ctx, r.handelCancel = context.WithCancel(context.Background())
-	pCert := &hotstuffpb.HandelSignature{Signatures: cert}
+	pCert := &hotstuffpb.HandelSignature{}
+	pCert.Signatures = cert
+	//pCert := &hotstuffpb.HandelSignature{Signatures: cert}
 	r.node.RequestHandelCertificate(ctx, pCert, gorums.WithNoSendWaiting())
 	//r.ValidateAndAggregateHandel(cert)
 	//TODO: VALIDATE Partial certificate,
@@ -172,6 +173,7 @@ func (cfg *Config) Connect(replicaCfg *config.ReplicaConfig) (err error) {
 			pubKey:            replica.PubKey,
 			newviewCancel:     func() {},
 			voteCancel:        func() {},
+			handelCancel:      func() {},
 			binaryTree:        cfg.binaryTree,
 			handelCertificate: cfg.handelCertificate,
 		}
